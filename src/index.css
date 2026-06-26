@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0c10;
+  --panel: #111318;
+  --panel-2: #161a21;
+  --border: #1f252e;
+  --text: #a1a7b3;
+  --text-h: #e6e9ef;
+  --accent: #00d4ff;
+  --accent2: #ff4d00;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+.mission-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  transition: border-color 0.1s;
+}
+
+.mission-card:hover {
+  border-color: #2a323f;
+}
+
+.nav-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid transparent;
+  text-transform: uppercase;
+}
+
+.nav-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-h);
+  text-transform: uppercase;
+  transition: all 0.1s;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: #00b8e0;
+  color: #000;
+}
+
+.input {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  color: var(--accent);
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.chat-user {
+  background: var(--accent);
+  color: #000;
+  margin-left: auto;
+}
+
+.chat-ai {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
