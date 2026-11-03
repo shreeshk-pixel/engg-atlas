@@ -44,9 +44,9 @@ function App() {
   const [courses, setCourses] = useState<Course[]>([]);
 
   // AI settings
-  const [llmEndpoint, setLlmEndpoint] = useState('https://api.openai.com/v1');
+  const [llmEndpoint, setLlmEndpoint] = useState('https://openrouter.ai/api/v1');
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('gpt-4o-mini');
+  const [model, setModel] = useState('openai/gpt-4o-mini');
 
   // AI tool states
   const [notes, setNotes] = useState('');
@@ -189,7 +189,9 @@ function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://engg-atlas.vercel.app',
+          'X-Title': 'ATLAS ISE Mission Control'
         },
         body: JSON.stringify({
           model,
@@ -603,9 +605,19 @@ function App() {
                   className="input w-full" 
                   value={llmEndpoint} 
                   onChange={e => setLlmEndpoint(e.target.value)}
-                  placeholder="https://api.openai.com/v1"
+                  placeholder="https://openrouter.ai/api/v1"
                 />
-                <div className="text-xs mt-1 text-[#555]">Use your Emergent endpoint or any OpenAI-compatible server</div>
+                <div className="text-xs mt-1 text-[#555]">OpenRouter: https://openrouter.ai/api/v1</div>
+                <button
+                  type="button"
+                  className="btn mt-2"
+                  onClick={() => {
+                    setLlmEndpoint('https://openrouter.ai/api/v1');
+                    setModel('openai/gpt-4o-mini');
+                  }}
+                >
+                  USE OPENROUTER
+                </button>
               </div>
 
               <div>
@@ -615,9 +627,9 @@ function App() {
                   className="input w-full" 
                   value={apiKey} 
                   onChange={e => setApiKey(e.target.value)}
-                  placeholder="sk-..."
+                  placeholder="sk-or-v1-..."
                 />
-                <div className="text-xs mt-1 text-[#555]">Stored only in your browser localStorage</div>
+                <div className="text-xs mt-1 text-[#555]">Paste your OpenRouter key here. Saved only in this browser, never in GitHub.</div>
               </div>
 
               <div>
@@ -626,9 +638,9 @@ function App() {
                   className="input w-full" 
                   value={model} 
                   onChange={e => setModel(e.target.value)}
-                  placeholder="gpt-4o-mini, grok-2, llama-3.1-70b, claude-3-5-sonnet-20241022, etc."
+                  placeholder="openai/gpt-4o-mini"
                 />
-                <div className="text-xs mt-1 text-[#555]">Any model your provider supports (OpenAI-compatible format)</div>
+                <div className="text-xs mt-1 text-[#555]">OpenRouter model id, e.g. openai/gpt-4o-mini or google/gemini-2.0-flash-001</div>
               </div>
 
               <div className="pt-4 border-t border-[#1f252e] text-xs text-[#555]">
