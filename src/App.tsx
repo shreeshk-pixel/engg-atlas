@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Rocket, Calendar, ClipboardList, TrendingUp, Bot, Settings, 
-  Plus, Trash2, Check, Target, BookOpen 
+  Plus, Trash2, Check, Target 
 } from 'lucide-react';
 
 interface Class {
@@ -34,205 +34,9 @@ const GRADE_POINTS: Record<string, number> = {
   S: 10, A: 9, B: 8, C: 7, D: 6, E: 5, F: 0
 };
 
-// TEMPORARY: Probability & Statistics 5-Week Exam Tracker
-// Remove this entire section after the exam is over.
-interface PlanItem {
-  text: string;
-}
-
-interface PlanDay {
-  day: number;
-  topics: PlanItem[];
-  time: string;
-}
-
-interface WeekPlan {
-  week: number;
-  title: string;
-  objective: string;
-  days: PlanDay[];
-}
-
-const STATS_PLAN: WeekPlan[] = [
-  {
-    week: 1,
-    title: "Correlation and Regression",
-    objective: "Master curve fitting by least squares, Karl Pearson correlation, linear/multiple/partial regression for engineering data modeling.",
-    days: [
-      { day: 1, topics: [
-        { text: "Introduction to Curve Fitting & Least Square Method" },
-        { text: "Fitting straight line: y = a + bx" }
-      ], time: "2 hours" },
-      { day: 2, topics: [
-        { text: "Fitting power curve: y = ax^b" },
-        { text: "Fitting parabolic curve: y = a + bx + cx²" }
-      ], time: "2 hours" },
-      { day: 3, topics: [
-        { text: "Karl Pearson Coefficient of Correlation" },
-        { text: "Linear Regression – problems and interpretation" }
-      ], time: "2.5 hours" },
-      { day: 4, topics: [
-        { text: "Multiple Correlation and Multiple Regression" },
-        { text: "Solved problems on multiple regression" }
-      ], time: "2 hours" },
-      { day: 5, topics: [
-        { text: "Partial Correlation and Partial Regression" },
-        { text: "Mixed problems: correlation + regression" }
-      ], time: "2 hours" },
-      { day: 6, topics: [
-        { text: "Practice Problems – Curve fitting & Correlation" },
-        { text: "Previous Year Questions (Unit I)" }
-      ], time: "2 hours" },
-      { day: 7, topics: [
-        { text: "Full Revision of Unit I concepts" },
-        { text: "Self Assessment + Weekly Quiz" }
-      ], time: "1.5 hours" }
-    ]
-  },
-  {
-    week: 2,
-    title: "Random Variable",
-    objective: "Revise basic probability to Bayes theorem. Master discrete/continuous random variables, PDF/CDF, expectations, and standard distributions with practical examples.",
-    days: [
-      { day: 1, topics: [
-        { text: "Revision: Basic Probability + Conditional Probability" },
-        { text: "Bayes Theorem (full)" }
-      ], time: "2 hours" },
-      { day: 2, topics: [
-        { text: "Discrete Random Variable (DRV) & Continuous Random Variable (CRV)" },
-        { text: "Probability Distribution Function (PDF) & Cumulative Distribution Function (CDF)" }
-      ], time: "2 hours" },
-      { day: 3, topics: [
-        { text: "Expectations, Mean and Variance" },
-        { text: "Properties and solved problems" }
-      ], time: "2 hours" },
-      { day: 4, topics: [
-        { text: "Binomial Distribution – theory + problems" },
-        { text: "Poisson Distribution – theory + problems" }
-      ], time: "2.5 hours" },
-      { day: 5, topics: [
-        { text: "Exponential Distribution" },
-        { text: "Normal Distribution + practical examples" }
-      ], time: "2 hours" },
-      { day: 6, topics: [
-        { text: "Practice Problems on all distributions" },
-        { text: "Previous Year Questions (Unit II)" }
-      ], time: "2 hours" },
-      { day: 7, topics: [
-        { text: "Full Revision of Unit II" },
-        { text: "Self Assessment + Weekly Quiz" }
-      ], time: "1.5 hours" }
-    ]
-  },
-  {
-    week: 3,
-    title: "Joint PDF and Stochastic Process",
-    objective: "Understand joint and conditional PDFs, expectations & covariance. Learn classification of stochastic processes and master Markov chains.",
-    days: [
-      { day: 1, topics: [
-        { text: "Discrete Multivariable Joint PDF" },
-        { text: "Multivariable Conditional Joint PDF" }
-      ], time: "2 hours" },
-      { day: 2, topics: [
-        { text: "Expectations: Mean, Variance and Covariance (joint)" },
-        { text: "Solved problems on joint distributions" }
-      ], time: "2 hours" },
-      { day: 3, topics: [
-        { text: "Definition and Classification of Stochastic Processes" },
-        { text: "Discrete state & Discrete parameter stochastic processes" }
-      ], time: "2 hours" },
-      { day: 4, topics: [
-        { text: "Unique Fixed Probability Vector" },
-        { text: "Regular Stochastic Matrix & Transition Probability" }
-      ], time: "2 hours" },
-      { day: 5, topics: [
-        { text: "Markov Chain – definition, properties & examples" },
-        { text: "One-step & n-step transition probabilities" }
-      ], time: "2.5 hours" },
-      { day: 6, topics: [
-        { text: "Practice Problems – Joint PDF + Markov Chains" },
-        { text: "Previous Year Questions (Unit III)" }
-      ], time: "2 hours" },
-      { day: 7, topics: [
-        { text: "Full Revision of Unit III" },
-        { text: "Self Assessment + Weekly Quiz" }
-      ], time: "1.5 hours" }
-    ]
-  },
-  {
-    week: 4,
-    title: "Hypothesis Testing",
-    objective: "Learn formulation of hypotheses, critical regions, sampling errors, significance levels. Perform tests for mean, variance and proportion.",
-    days: [
-      { day: 1, topics: [
-        { text: "Null and Alternate Hypothesis" },
-        { text: "Critical Region & Type I / Type II Errors" }
-      ], time: "2 hours" },
-      { day: 2, topics: [
-        { text: "Sampling & Sampling Errors" },
-        { text: "Level of Significance and Confidence Limits" }
-      ], time: "2 hours" },
-      { day: 3, topics: [
-        { text: "Testing Hypothesis of Mean (large samples)" },
-        { text: "Testing Hypothesis of Mean (small samples)" }
-      ], time: "2.5 hours" },
-      { day: 4, topics: [
-        { text: "Testing Hypothesis of Variance" },
-        { text: "Solved problems" }
-      ], time: "2 hours" },
-      { day: 5, topics: [
-        { text: "Testing Hypothesis of Proportion" },
-        { text: "Mixed hypothesis testing problems" }
-      ], time: "2 hours" },
-      { day: 6, topics: [
-        { text: "Practice Problems – All hypothesis tests" },
-        { text: "Previous Year Questions (Unit IV)" }
-      ], time: "2 hours" },
-      { day: 7, topics: [
-        { text: "Full Revision of Unit IV" },
-        { text: "Self Assessment + Weekly Quiz" }
-      ], time: "1.5 hours" }
-    ]
-  },
-  {
-    week: 5,
-    title: "Sampling Distribution",
-    objective: "Understand sampling distributions, sampling distribution of means. Master t, chi-square and F distributions with significance tests for small & large samples.",
-    days: [
-      { day: 1, topics: [
-        { text: "Introduction to Sampling Distribution" },
-        { text: "Sampling Distribution of Means (theory)" }
-      ], time: "2 hours" },
-      { day: 2, topics: [
-        { text: "Test of Significance for Large Samples" },
-        { text: "Test of Significance for Small Samples" }
-      ], time: "2 hours" },
-      { day: 3, topics: [
-        { text: "Student’s t-distribution – theory & applications" },
-        { text: "Chi-square (χ²) distribution – theory & applications" }
-      ], time: "2.5 hours" },
-      { day: 4, topics: [
-        { text: "F-distribution – theory and uses" },
-        { text: "Comparison of t, χ² and F tests" }
-      ], time: "2 hours" },
-      { day: 5, topics: [
-        { text: "Practical examples on all sampling distributions" },
-        { text: "Integrated problems from Unit V" }
-      ], time: "2 hours" },
-      { day: 6, topics: [
-        { text: "Practice Problems + PYQs (Unit V)" },
-        { text: "Full syllabus mixed practice (Units I–V)" }
-      ], time: "2.5 hours" },
-      { day: 7, topics: [
-        { text: "Complete Revision of all 5 Units" },
-        { text: "Final Self Assessment + Full Mock Quiz" }
-      ], time: "2 hours" }
-    ]
-  }
-];
 
 function App() {
-  const [tab, setTab] = useState<'overview' | 'timetable' | 'assignments' | 'academics' | 'ai' | 'psplan' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'timetable' | 'assignments' | 'academics' | 'ai' | 'settings'>('overview');
 
   // Data states
   const [classes, setClasses] = useState<Class[]>([]);
@@ -253,8 +57,6 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
 
-  // TEMPORARY PS Plan Tracker state
-  const [psProgress, setPsProgress] = useState<Record<string, boolean>>({});
 
   // Load from localStorage
   useEffect(() => {
@@ -299,32 +101,6 @@ function App() {
     localStorage.setItem('ise_llm_model', model);
   }, [model]);
 
-  // TEMP PS Plan progress load/save
-  useEffect(() => {
-    const saved = localStorage.getItem('ps_plan_progress');
-    if (saved) setPsProgress(JSON.parse(saved));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('ps_plan_progress', JSON.stringify(psProgress));
-  }, [psProgress]);
-
-  const togglePsItem = (key: string) => {
-    setPsProgress(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const getPsProgress = () => {
-    let total = 0;
-    let done = 0;
-    STATS_PLAN.forEach(w => w.days.forEach(d => {
-      d.topics.forEach((_, i) => {
-        total++;
-        if (psProgress[`w${w.week}-d${d.day}-${i}`]) done++;
-      });
-    }));
-    return total > 0 ? Math.round((done / total) * 100) : 0;
-  };
-  const psPercent = getPsProgress();
 
   // Timetable helpers
   const addClass = () => {
@@ -521,7 +297,6 @@ function App() {
              { id: 'assignments', label: 'ASSIGNMENTS', icon: ClipboardList },
              { id: 'academics', label: 'ACADEMICS', icon: TrendingUp },
              { id: 'ai', label: 'AI OPS', icon: Bot },
-             { id: 'psplan', label: 'STATS PLAN', icon: BookOpen },
              { id: 'settings', label: 'SETTINGS', icon: Settings },
            ].map(({ id, label, icon: Icon }) => (
             <button
@@ -812,71 +587,6 @@ function App() {
            </div>
          )}
 
-         {/* TEMPORARY PROBABILITY & STATISTICS 5-WEEK TRACKER */}
-         {tab === 'psplan' && (
-           <div>
-             <div className="mb-6">
-               <div className="flex items-center gap-3">
-                 <div className="text-xs text-[#ff4d00] px-2 py-1 bg-[#1f252e] border border-[#ff4d00]/40">TEMPORARY — REMOVE AFTER EXAM</div>
-                 <div>
-                   <div className="text-xs text-[#00d4ff]">PROBABILITY &amp; STATISTICS</div>
-                   <div className="text-3xl text-[#e6e9ef]">5-WEEK EXAM TRACKER</div>
-                 </div>
-               </div>
-             </div>
-
-             <div className="mission-card p-5 mb-6">
-               <div className="flex justify-between items-center mb-2">
-                 <div className="text-xs text-[#00d4ff]">OVERALL PROGRESS</div>
-                 <div className="text-[#e6e9ef] text-xl font-semibold">{psPercent}%</div>
-               </div>
-               <div className="h-2 bg-[#1f252e] rounded overflow-hidden">
-                 <div className="h-2 bg-[#00d4ff]" style={{ width: `${psPercent}%` }} />
-               </div>
-               <div className="text-xs text-[#555] mt-1">Check off topics as you complete them. Progress saved locally.</div>
-             </div>
-
-             {STATS_PLAN.map(week => (
-               <div key={week.week} className="mission-card p-6 mb-6">
-                 <div className="mb-4">
-                   <div className="text-[#00d4ff] text-xs tracking-widest">WEEK {week.week}</div>
-                   <div className="text-2xl text-[#e6e9ef]">{week.title}</div>
-                 </div>
-                 <div className="mb-5 text-sm text-[#a1a7b3]">
-                   <span className="text-[#00d4ff]">Objective:</span> {week.objective}
-                 </div>
-
-                 {week.days.map(day => (
-                   <div key={day.day} className="mb-5 border-l-2 border-[#1f252e] pl-4">
-                     <div className="flex items-center gap-2 mb-1">
-                       <div className="text-[#e6e9ef] font-semibold">Day {day.day}</div>
-                       <div className="text-xs text-[#555]">• {day.time}</div>
-                     </div>
-                     {day.topics.map((topic, idx) => {
-                       const key = `w${week.week}-d${day.day}-${idx}`;
-                       const checked = !!psProgress[key];
-                       return (
-                         <label key={idx} className="flex items-start gap-2 py-0.5 cursor-pointer text-sm">
-                           <input
-                             type="checkbox"
-                             checked={checked}
-                             onChange={() => togglePsItem(key)}
-                             className="mt-1 accent-[#00d4ff]"
-                           />
-                           <span className={checked ? 'line-through opacity-60' : ''}>{topic.text}</span>
-                         </label>
-                       );
-                     })}
-                   </div>
-                 ))}
-               </div>
-             ))}
-
-             <div className="text-xs text-[#555] mt-2">
-               Temporary tracker built for this exam only. Delete the entire "STATS PLAN" section once the exam is over.
-             </div>
-           </div>
-         )}
 
          {/* SETTINGS */}
          {tab === 'settings' && (
@@ -942,3 +652,4 @@ function App() {
 }
 
 export default App;
+
