@@ -27,12 +27,6 @@ interface Course {
   grade: string;
 }
 
-const SUBJECTS = [
-  'Data Structures', 'Algorithms', 'Operating Systems', 'DBMS',
-  'Computer Networks', 'Software Engg', 'AI & ML', 'Web Tech',
-  'Theory of Computation', 'Compiler Design', 'Cloud Computing', 'Cyber Security'
-];
-
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const GRADES = ['S', 'A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -338,7 +332,7 @@ function App() {
       id: Date.now().toString(),
       day: 'Mon',
       time: '09:00',
-      subject: SUBJECTS[0],
+      subject: '',
       room: 'LH-01'
     };
     setClasses([...classes, newClass]);
@@ -357,7 +351,7 @@ function App() {
     const newAssign: Assignment = {
       id: Date.now().toString(),
       title: 'New Assignment',
-      subject: SUBJECTS[0],
+      subject: '',
       due: new Date(Date.now() + 7*86400000).toISOString().split('T')[0],
       done: false
     };
@@ -380,7 +374,7 @@ function App() {
   const addCourse = () => {
     const newCourse: Course = {
       id: Date.now().toString(),
-      name: SUBJECTS[0],
+      name: '',
       credits: 4,
       grade: 'A'
     };
@@ -457,7 +451,7 @@ function App() {
     if (!studyGoal.trim()) return;
     const result = await callLLM([
       { role: 'system', content: 'You are a mission control planner for engineering students. Create a realistic 7-day study plan for an ISE student. Include specific topics, daily targets, and revision slots. Keep it tight and actionable.' },
-      { role: 'user', content: `Goal: ${studyGoal}. Current subjects: ${SUBJECTS.slice(0,6).join(', ')}` }
+      { role: 'user', content: `Goal: ${studyGoal}. Current subjects: ${[...new Set([...classes.map(c => c.subject), ...courses.map(c => c.name)].filter(Boolean))].join(', ') || 'ISE/CSE subjects'}` }
     ]);
     if (result) setStudyPlan(result);
   };
@@ -636,9 +630,7 @@ function App() {
                       </td>
                       <td><input type="time" className="input w-28" value={c.time} onChange={e => updateClass(c.id, 'time', e.target.value)} /></td>
                       <td>
-                        <select className="input w-52" value={c.subject} onChange={e => updateClass(c.id, 'subject', e.target.value)}>
-                          {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                        <input className="input w-52" placeholder="Subject name" value={c.subject} onChange={e => updateClass(c.id, 'subject', e.target.value)} />
                       </td>
                       <td><input className="input w-32" value={c.room} onChange={e => updateClass(c.id, 'room', e.target.value)} /></td>
                       <td><button onClick={() => deleteClass(c.id)} className="text-red-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td>
@@ -685,9 +677,7 @@ function App() {
                       </td>
                       <td><input className="input w-full" value={a.title} onChange={e => updateAssignment(a.id, 'title', e.target.value)} /></td>
                       <td>
-                        <select className="input" value={a.subject} onChange={e => updateAssignment(a.id, 'subject', e.target.value)}>
-                          {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                        <input className="input w-44" placeholder="Subject name" value={a.subject} onChange={e => updateAssignment(a.id, 'subject', e.target.value)} />
                       </td>
                       <td><input type="date" className="input" value={a.due} onChange={e => updateAssignment(a.id, 'due', e.target.value)} /></td>
                       <td><button onClick={() => deleteAssignment(a.id)} className="text-red-400"><Trash2 className="w-4 h-4" /></button></td>
@@ -729,9 +719,7 @@ function App() {
                   {courses.map(c => (
                     <tr key={c.id}>
                       <td>
-                        <select className="input w-60" value={c.name} onChange={e => updateCourse(c.id, 'name', e.target.value)}>
-                          {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                        <input className="input w-60" placeholder="Course name" value={c.name} onChange={e => updateCourse(c.id, 'name', e.target.value)} />
                       </td>
                       <td><input type="number" className="input w-20" value={c.credits} onChange={e => updateCourse(c.id, 'credits', parseInt(e.target.value) || 0)} /></td>
                       <td>
