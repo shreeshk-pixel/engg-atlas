@@ -56,6 +56,9 @@ function App() {
   const [chatMessages, setChatMessages] = useState<{role: 'user'|'assistant', content: string}[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [timetableText, setTimetableText] = useState('');
+  const [timetableImage, setTimetableImage] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
 
 
   // Load from localStorage
@@ -213,6 +216,124 @@ function App() {
       return null;
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const normalizeDay = (raw: string) => {
+    const s = raw.trim().toLowerCase();
+    const map: Record<string, string> = {
+      mon: 'Mon', monday: 'Mon', tue: 'Tue', tues: 'Tue', tuesday: 'Tue',
+      wed: 'Wed', wednesday: 'Wed', thu: 'Thu', thur: 'Thu', thurs: 'Thu', thursday: 'Thu',
+      fri: 'Fri', friday: 'Fri', sat: 'Sat', saturday: 'Sat'
+    };
+    return map[s] || map[s.slice(0, 3)] || 'Mon';
+  };
+
+  const normalizeTime = (raw: string) => {
+    const s = raw.trim().toLowerCase();
+    const ranged = s.match(/(\d{1,2})[:.](\d{2})\s*(am|pm)?/);
+    if (ranged) {
+      let h = parseInt(ranged[1], 10);
+      const min = ranged[2];
+      if (ranged[3] === 'pm' && h < 12) h += 12;
+      if (ranged[3] === 'am' && h === 12) h = 0;
+      return `${String(h).padStart(2, '0')}:${min}`;
+    }
+    const hourOnly = s.match(/(\d{1,2})\s*(am|pm)/);
+    if (hourOnly) {
+      let h = parseInt(hourOnly[1], 10);
+      if (hourOnly[2] === 'pm' && h < 12) h += 12;
+      if (hourOnly[2] === 'am' && h === 12) h = 0;
+      return `${String(h).padStart(2, '0')}:00`;
+    }
+    return '09:00';
+  };
+
+  const onTimetableFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1400;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setTimetableImage(canvas.toDataURL('image/jpeg', 0.72));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const importTimetable = async (mode: 'replace' | 'append') => {
+    if (!apiKey) {
+      alert('Set your OpenRouter key in Settings first');
+      return;
+    }
+    if (!timetableText.trim() && !timetableImage) {
+      alert('Paste timetable text or upload a photo');
+      return;
+    }
+    setImporting(true);
+    try {
+      const instruction = `Extract every scheduled class from this college timetable.
+Return ONLY a JSON array. No markdown.
+Schema: [{"day":"Mon","time":"09:00","subject":"DBMS","room":"LH-01"}]
+day must be Mon, Tue, Wed, Thu, Fri, or Sat.
+time is the start time in 24-hour HH:MM.
+If a cell has a time range, use the start time.
+Skip lunch, break, free, and empty slots.
+If room is missing, use an empty string.
+Keep the subject name exactly as written.`;
+      const imageModel = /gpt-4o|gemini|claude|vision/i.test(model) ? model : 'openai/gpt-4o-mini';
+      const userContent = timetableImage
+        ? [
+            { type: 'text', text: instruction + (timetableText.trim() ? `\n\nExtra text:\n${timetableText}` : '') },
+            { type: 'image_url', image_url: { url: timetableImage } }
+          ]
+        : instruction + `\n\nTimetable text:\n${timetableText}`;
+      const res = await fetch(`${llmEndpoint.replace(/\/$/, '')}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://engg-atlas.vercel.app',
+          'X-Title': 'ATLAS ISE Mission Control'
+        },
+        body: JSON.stringify({
+          model: timetableImage ? imageModel : model,
+          messages: [{ role: 'user', content: userContent }],
+          temperature: 0,
+          max_tokens: 2000
+        })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      const raw = String(data.choices?.[0]?.message?.content || '');
+      const jsonText = raw.replace(/```json|```/g, '').trim();
+      const start = jsonText.indexOf('[');
+      const end = jsonText.lastIndexOf(']');
+      if (start < 0 || end < 0) throw new Error('Could not read classes from the response');
+      const parsed = JSON.parse(jsonText.slice(start, end + 1));
+      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('No classes found');
+      const imported: Class[] = parsed.map((item: any, i: number) => ({
+        id: `${Date.now()}-${i}`,
+        day: normalizeDay(String(item.day || 'Mon')),
+        time: normalizeTime(String(item.time || '09:00')),
+        subject: String(item.subject || '').trim(),
+        room: String(item.room || '').trim()
+      })).filter(c => c.subject);
+      if (imported.length === 0) throw new Error('No named classes found');
+      setClasses(mode === 'append' ? [...classes, ...imported] : imported);
+      alert(`Imported ${imported.length} classes. Check times and edit anything wrong.`);
+    } catch (e: any) {
+      alert('Import failed: ' + e.message);
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -381,6 +502,43 @@ function App() {
               <button onClick={addClass} className="btn btn-primary flex items-center gap-2">
                 <Plus className="w-4 h-4" /> ADD CLASS
               </button>
+            </div>
+
+            <div className="mission-card p-5 mb-6">
+              <div className="text-xs text-[#00d4ff] mb-2">IMPORT TIMETABLE</div>
+              <div className="text-xs text-[#555] mb-3">Paste text or upload a photo. Extraction uses the API key in Settings. Review the result before trusting it.</div>
+              <textarea
+                className="input w-full h-24 mb-3 font-sans"
+                placeholder="Paste timetable text, or leave blank and upload a photo..."
+                value={timetableText}
+                onChange={e => setTimetableText(e.target.value)}
+              />
+              <div className="flex flex-wrap gap-3 items-center">
+                <label className="btn cursor-pointer">
+                  UPLOAD PHOTO
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) onTimetableFile(file);
+                    }}
+                  />
+                </label>
+                <button type="button" className="btn btn-primary" disabled={importing} onClick={() => importTimetable('replace')}>
+                  {importing ? 'EXTRACTING...' : 'EXTRACT & REPLACE'}
+                </button>
+                <button type="button" className="btn" disabled={importing} onClick={() => importTimetable('append')}>
+                  EXTRACT & ADD
+                </button>
+                {timetableImage && (
+                  <button type="button" className="btn" onClick={() => setTimetableImage(null)}>CLEAR PHOTO</button>
+                )}
+              </div>
+              {timetableImage && (
+                <img src={timetableImage} alt="Timetable preview" className="mt-3 max-h-40 border border-[#1f252e]" />
+              )}
             </div>
 
             <div className="mission-card overflow-hidden">
