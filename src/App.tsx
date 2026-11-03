@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { extractDocumentText } from './extractTimetableFile';
 import { 
   Rocket, Calendar, ClipboardList, TrendingUp, Bot, Settings, 
   Plus, Trash2, Check, Target 
@@ -249,7 +250,7 @@ function App() {
     return '09:00';
   };
 
-  const onTimetableFile = (file: File) => {
+  const loadTimetableImage = (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
@@ -267,6 +268,26 @@ function App() {
       img.src = String(reader.result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const onTimetableFile = async (file: File) => {
+    const name = file.name.toLowerCase();
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp)$/.test(name);
+    if (isImage) {
+      loadTimetableImage(file);
+      return;
+    }
+    setTimetableImage(null);
+    try {
+      const text = await extractDocumentText(file);
+      if (!text.trim()) {
+        alert('No text found in that file. If it is a scanned PDF, upload a photo instead.');
+        return;
+      }
+      setTimetableText(text);
+    } catch (e: any) {
+      alert(e.message || 'Could not read that file');
+    }
   };
 
   const importTimetable = async (mode: 'replace' | 'append') => {
@@ -506,19 +527,19 @@ Keep the subject name exactly as written.`;
 
             <div className="mission-card p-5 mb-6">
               <div className="text-xs text-[#00d4ff] mb-2">IMPORT TIMETABLE</div>
-              <div className="text-xs text-[#555] mb-3">Paste text or upload a photo. Extraction uses the API key in Settings. Review the result before trusting it.</div>
+              <div className="text-xs text-[#555] mb-3">Paste text, or upload a photo, PDF, Word (.docx), Excel, CSV, or TXT. Document text is read locally, then structured with the API key in Settings.</div>
               <textarea
                 className="input w-full h-24 mb-3 font-sans"
-                placeholder="Paste timetable text, or leave blank and upload a photo..."
+                placeholder="Paste timetable text, or upload a file..."
                 value={timetableText}
                 onChange={e => setTimetableText(e.target.value)}
               />
               <div className="flex flex-wrap gap-3 items-center">
                 <label className="btn cursor-pointer">
-                  UPLOAD PHOTO
+                  UPLOAD FILE
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.pdf,.docx,.xlsx,.xls,.csv,.txt"
                     className="hidden"
                     onChange={e => {
                       const file = e.target.files?.[0];
