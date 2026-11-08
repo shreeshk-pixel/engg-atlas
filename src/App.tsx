@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { extractDocumentText } from './extractTimetableFile';
+import { WavelumeStage } from './wavelume/WavelumeStage';
 import { 
   Rocket, Calendar, ClipboardList, TrendingUp, Bot, Settings, 
   Plus, Trash2, Check, Target, Music 
@@ -835,12 +836,7 @@ Keep the subject name exactly as written.`;
           )}
 
           {tab === 'waves' && (
-            <iframe
-              title="Wavelume"
-              src="/wavelume/index.html"
-              className="block w-screen border-0 bg-black -my-8"
-              style={{ height: 'calc(100svh - 118px)', marginLeft: 'calc(50% - 50vw)' }}
-            />
+            <div className="text-xs text-[#555]">Wavelume is open over the dashboard. Use BACK TO ATLAS to return.</div>
           )}
       </div>
 
@@ -849,6 +845,7 @@ Keep the subject name exactly as written.`;
         T- MINUS TO GRADUATION • ALL SYSTEMS GO
       </div>
       )}
+      <WavelumeStage active={tab === 'waves'} onClose={() => setTab('overview')} />
     </div>
   );
 }
