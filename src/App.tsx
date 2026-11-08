@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { extractDocumentText } from './extractTimetableFile';
 import { 
   Rocket, Calendar, ClipboardList, TrendingUp, Bot, Settings, 
-  Plus, Trash2, Check, Target 
+  Plus, Trash2, Check, Target, Music 
 } from 'lucide-react';
 
 interface Class {
@@ -37,7 +37,7 @@ const GRADE_POINTS: Record<string, number> = {
 
 
 function App() {
-  const [tab, setTab] = useState<'overview' | 'timetable' | 'assignments' | 'academics' | 'ai' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'timetable' | 'assignments' | 'academics' | 'ai' | 'waves' | 'settings'>('overview');
 
   // Data states
   const [classes, setClasses] = useState<Class[]>([]);
@@ -441,6 +441,7 @@ Keep the subject name exactly as written.`;
              { id: 'assignments', label: 'ASSIGNMENTS', icon: ClipboardList },
              { id: 'academics', label: 'ACADEMICS', icon: TrendingUp },
              { id: 'ai', label: 'AI OPS', icon: Bot },
+             { id: 'waves', label: 'WAVELUME', icon: Music },
              { id: 'settings', label: 'SETTINGS', icon: Settings },
            ].map(({ id, label, icon: Icon }) => (
             <button
@@ -831,13 +832,23 @@ Keep the subject name exactly as written.`;
               ATLAS • Information Science &amp; Engineering • Built for one cadet.
             </div>
           </div>
-        )}
+          )}
+
+          {tab === 'waves' && (
+            <iframe
+              title="Wavelume"
+              src="/wavelume/index.html"
+              className="block w-screen border-0 bg-black -my-8"
+              style={{ height: 'calc(100svh - 118px)', marginLeft: 'calc(50% - 50vw)' }}
+            />
+          )}
       </div>
 
-      {/* FOOTER BAR */}
+      {tab !== 'waves' && (
       <div className="border-t border-[#1f252e] py-4 text-center text-[10px] text-[#555]">
         T- MINUS TO GRADUATION • ALL SYSTEMS GO
       </div>
+      )}
     </div>
   );
 }
