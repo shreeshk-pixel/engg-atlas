@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { extractDocumentText } from './extractTimetableFile';
-import { WavelumeStage } from './wavelume/WavelumeStage';
 import { 
   Rocket, Calendar, ClipboardList, TrendingUp, Bot, Settings, 
-  Plus, Trash2, Check, Target, Music 
+  Plus, Trash2, Check, Target 
 } from 'lucide-react';
 
 interface Class {
@@ -38,7 +37,7 @@ const GRADE_POINTS: Record<string, number> = {
 
 
 function App() {
-  const [tab, setTab] = useState<'overview' | 'timetable' | 'assignments' | 'academics' | 'ai' | 'waves' | 'settings'>('overview');
+  const [tab, setTab] = useState<'overview' | 'timetable' | 'assignments' | 'academics' | 'ai' | 'settings'>('overview');
 
   // Data states
   const [classes, setClasses] = useState<Class[]>([]);
@@ -442,7 +441,6 @@ Keep the subject name exactly as written.`;
              { id: 'assignments', label: 'ASSIGNMENTS', icon: ClipboardList },
              { id: 'academics', label: 'ACADEMICS', icon: TrendingUp },
              { id: 'ai', label: 'AI OPS', icon: Bot },
-             { id: 'waves', label: 'WAVELUME', icon: Music },
              { id: 'settings', label: 'SETTINGS', icon: Settings },
            ].map(({ id, label, icon: Icon }) => (
             <button
@@ -835,17 +833,11 @@ Keep the subject name exactly as written.`;
           </div>
           )}
 
-          {tab === 'waves' && (
-            <div className="text-xs text-[#555]">Wavelume is open over the dashboard. Use BACK TO ATLAS to return.</div>
-          )}
       </div>
 
-      {tab !== 'waves' && (
       <div className="border-t border-[#1f252e] py-4 text-center text-[10px] text-[#555]">
         T- MINUS TO GRADUATION • ALL SYSTEMS GO
       </div>
-      )}
-      <WavelumeStage active={tab === 'waves'} onClose={() => setTab('overview')} />
     </div>
   );
 }
